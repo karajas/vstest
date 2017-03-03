@@ -23,36 +23,39 @@ DISABLE_LOCALIZED_BUILD=false
 CI_BUILD=false
 PROJECT_NAME_PATTERNS=
 
-while [ "$1" != "" ]; do
-	PARAM=`echo $1 | awk -F= '{print $1}'`
-	VALUE=`echo $1 | awk -F= '{print $2}'`
-	case $PARAM in
+while [ $# > 0 ]; do
+    lowerI="$(echo $1 | awk '{print tolower($0)}')"
+    case $lowerI in
 	        -h | --help)
         	        usage
         	        exit
         	        ;;
                 -c)
-			CONFIGURATION=$VALUE
+			CONFIGURATION=$2
 			;;
 		-r)
-			TARGET_RUNTIME=$VALUE
+			TARGET_RUNTIME=$2
 			;;
 		-v)
-			VERSION=$VALUE
+			VERSION=$2
 			;;
 		-vs)
-			VERSION_SUFFIX=$VALUE
+			VERSION_SUFFIX=$2
 			;;
 		-loc)
-			DISABLE_LOCALIZED_BUILD=$VALUE
+			DISABLE_LOCALIZED_BUILD=$2
 			;;
 		-ci)
-        	        CI_BUILD=$VALUE
+        	        CI_BUILD=$2
         	        ;;
                 -p)
-			PROJECT_NAME_PATTERNS=$VALUE
+			PROJECT_NAME_PATTERNS=$2
 			;;
-	esac
+                 *)
+                        break
+                        ;;
+   esac
+   shift
 done
 
 #
@@ -98,7 +101,7 @@ function installdotnetcli()
 	[[ -d "$DOTNET_INSTALL_DIR" ]] || mkdir -p $DOTNET_INSTALL_DIR
 
 	DOTNET_INSTALL_PATH="$TP_TOOLS_DIR/dotnet/dotnet"
-    if [[ ! -e $DOTNET_INSTALL_PATH ]]; then
+        if [[ ! -e $DOTNET_INSTALL_PATH ]]; then
 
 		# Install a stage 0
 		DOTNET_INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh"
@@ -114,8 +117,9 @@ function restorepackage()
     echo "Restore-Package: Start restoring packages to $env:TP_PACKAGES_DIR."
 	start=$SECONDS
     DOTNET_PATH="$TP_TOOLS_DIR/dotnet/dotnet"
-    if [[ -e $DOTNET_PATH ]]; then
+    if [[ -f $DOTNET_PATH ]]; then
         echo "dotnet not found at $DOTNET_PATH. Did the dotnet cli installation succeed?"
+        exit
     fi
 
     echo ".. .. Restore-Package: Source: $TPB_Solution" \
