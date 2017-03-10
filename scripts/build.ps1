@@ -33,6 +33,9 @@ Param(
     [Parameter(Mandatory=$false)]
     [Alias("ci")]
     [Switch] $CIBuild = $false,
+    
+    [Parameter(Mandatory=$false)]
+    [Switch] $SkipBuild = $false,
 
     # Build specific projects
     [Parameter(Mandatory=$false)]
@@ -47,8 +50,12 @@ $ErrorActionPreference = "Stop"
 #
 Write-Verbose "Setup environment variables."
 $env:TP_ROOT_DIR = (Get-Item (Split-Path $MyInvocation.MyCommand.Path)).Parent.FullName
-$env:TP_TOOLS_DIR = Join-Path $env:TP_ROOT_DIR "tools"
-$env:TP_PACKAGES_DIR = Join-Path $env:TP_ROOT_DIR "packages"
+if(!$env:TP_TOOLS_DIR){
+  $env:TP_TOOLS_DIR = Join-Path $env:TP_ROOT_DIR "tools"
+}
+if(!$env:TP_PACKAGES_DIR){
+  $env:TP_PACKAGES_DIR = Join-Path $env:TP_ROOT_DIR "packages"
+}
 $env:TP_OUT_DIR = Join-Path $env:TP_ROOT_DIR "artifacts"
 $env:TP_PACKAGE_PROJ_DIR = Join-Path $env:TP_ROOT_DIR "src\package"
 $env:TP_SRC_DIR = Join-Path $env:TP_ROOT_DIR "src"
@@ -343,8 +350,8 @@ function Create-NugetPackages
             $additionalArgs = "-NoPackageAnalysis"
         }
 
-        Write-Verbose "$nugetExe pack $stagingDir\$file -OutputDirectory $packageOutputDir -Version $FullVersion -Properties Version=$FullVersion $additionalArgs"
-        & $nugetExe pack $stagingDir\$file -OutputDirectory $packageOutputDir -Version $FullVersion -Properties Version=$FullVersion`;Runtime=$TPB_TargetRuntime $additionalArgs
+        Write-Verbose "$nugetExe pack $stagingDir\$file -OutputDirectory $packageOutputDir -Version=$FullVersion -Properties Version=$FullVersion $additionalArgs"
+        & $nugetExe pack $stagingDir\$file -OutputDirectory $packageOutputDir -Version=$FullVersion -Properties Version=$FullVersion`;Runtime=$TPB_TargetRuntime $additionalArgs
     }
 
     Write-Log "Create-NugetPackages: Complete. {$(Get-ElapsedTime($timer))}"
@@ -572,6 +579,11 @@ Write-Log "Test platform build variables: "
 Get-Variable | Where-Object -FilterScript { $_.Name.StartsWith("TPB_") } | Format-Table
 Install-DotNetCli
 Restore-Package
+if($SkipBuild)
+{
+  Write-Host "Skipping product build..."
+  exit 0
+}
 Update-LocalizedResources
 Invoke-Build
 Publish-Package

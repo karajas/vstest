@@ -51,6 +51,9 @@ while [ $# > 0 ]; do
         -p)
             PROJECT_NAME_PATTERNS=$2
             ;;
+        --skip-build)
+            SKIP_BUILD=1
+            ;;
         *)
             break
             ;;
@@ -299,6 +302,10 @@ compgen -A variable | grep "TPB_"
 
 installdotnetcli
 restorepackage
+if [ "$SKIP_BUILD" == "1" ]; then
+  echo "Skipping product build ..."
+  exit 0
+fi
 invokebuild
 publishpackage
 createnugetpackages
