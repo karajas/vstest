@@ -111,7 +111,7 @@ function Install-DotNetCli
 {
     $timer = Start-Timer
     Write-Log "Install-DotNetCli: Get dotnet-install.ps1 script..."
-    $dotnetInstallRemoteScript = "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1"
+    $dotnetInstallRemoteScript = "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1"
     $dotnetInstallScript = Join-Path $env:TP_TOOLS_DIR "dotnet-install.ps1"
     if (-not (Test-Path $env:TP_TOOLS_DIR)) {
         New-Item $env:TP_TOOLS_DIR -Type Directory | Out-Null
